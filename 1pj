@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>의리 골프클럽 (가제)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --ink:#1B2430;
+    --fairway:#16332A;
+    --fairway-2:#20493B;
+    --moss:#4E7C59;
+    --scorecard:#F4EFE3;
+    --scorecard-line:#DCD3BC;
+    --gold:#C8A64B;
+    --clay:#B8763E;
+    --paper:#FAFAF7;
+    --danger:#A8432F;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Pretendard', -apple-system, sans-serif;
+    padding-bottom:72px;
+  }
+  h1,h2,h3,.display{
+    font-family:'Barlow Condensed','Pretendard',sans-serif;
+    letter-spacing:.02em; text-transform:uppercase; font-weight:700;
+  }
+  .num{ font-family:'Space Mono', monospace; font-variant-numeric: tabular-nums; }
+
+  /* ---- Header ---- */
+  header.top{
+    background:var(--fairway); color:#fff; padding:18px 20px 22px;
+    border-radius:0 0 22px 22px;
+  }
+  header.top .eyebrow{ font-size:12px; letter-spacing:.18em; color:var(--gold); text-transform:uppercase; }
+  header.top h1{ margin:4px 0 0; font-size:28px; }
+  header.top .sub{ font-size:13px; opacity:.75; margin-top:2px; }
+  .me-badge{
+    display:inline-flex; align-items:center; gap:6px; margin-top:12px;
+    background:rgba(255,255,255,.1); padding:6px 12px; border-radius:999px; font-size:13px;
+  }
+  .tier-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .tier-0{ background:var(--gold); } .tier-1{ background:#7FB3D5; }
+  .tier-2{ background:var(--moss); } .tier-3{ background:#9A9A9A; }
+  .tier-none{ background:#555; }
+
+  /* ---- Nav tabs ---- */
+  nav.tabs{
+    position:fixed; bottom:0; left:0; right:0; background:#fff;
+    border-top:1px solid #e7e4da; display:flex; z-index:50;
+  }
+  nav.tabs button{
+    flex:1; border:none; background:none; padding:10px 4px 8px; font-size:11px;
+    color:#8b8b83; display:flex; flex-direction:column; align-items:center; gap:3px;
+  }
+  nav.tabs button.active{ color:var(--fairway); font-weight:700; }
+  nav.tabs button .ic{ font-size:18px; }
+
+  main{ padding:16px; max-width:640px; margin:0 auto; }
+  section{ display:none; }
+  section.active{ display:block; }
+
+  .card{
+    background:#fff; border:1px solid #ece8dc; border-radius:var(--radius);
+    padding:14px 16px; margin-bottom:12px;
+  }
+  .card h3{ margin:0 0 8px; font-size:18px; color:var(--fairway); }
+  .row{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .muted{ color:#8a8a80; font-size:12.5px; }
+  .pill{ display:inline-block; padding:2px 9px; border-radius:999px; font-size:11.5px; font-weight:600; }
+  .pill.정기{ background:#EAF3EC; color:var(--moss); }
+  .pill.백세클럽,.pill.100세클럽{ background:#F3EBDD; color:var(--clay); }
+  .pill.제외{ background:#F1EFEC; color:#9a9a90; }
+  .pill.예약완료{ background:var(--fairway); color:#fff; }
+  .pill.미정{ background:#eee; color:#777; }
+
+  /* ---- Scorecard signature component ---- */
+  .scorecard{
+    background:var(--scorecard); border:1px solid var(--scorecard-line);
+    border-radius:10px; padding:10px 12px; display:flex; gap:6px; overflow-x:auto;
+  }
+  .scorecard .cell{
+    min-width:34px; text-align:center; padding:6px 0; border-radius:6px;
+    background:#fff; border:1px solid var(--scorecard-line); font-size:13px;
+  }
+  .scorecard .cell .d{ font-size:9px; color:#9a9484; }
+  .scorecard .cell .s{ font-weight:700; }
+  .scorecard .cell.best{ background:var(--gold); color:#3a2f10; border-color:var(--gold); }
+
+  button.btn{
+    border:none; border-radius:10px; padding:9px 14px; font-weight:700; font-size:13.5px;
+    background:var(--fairway); color:#fff; cursor:pointer;
+  }
+  button.btn.ghost{ background:#fff; color:var(--fairway); border:1px solid var(--fairway); }
+  button.btn.ghost.view-active{ background:var(--fairway); color:#fff; }
+  .group-header{
+    font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:15px;
+    color:var(--fairway); margin:14px 2px 6px; letter-spacing:.03em;
+  }
+  button.btn.small{ padding:6px 10px; font-size:12px; }
+  button.status-btn{
+    border:1px solid #ddd; background:#fff; border-radius:999px; padding:5px 10px; font-size:12px;
+  }
+  button.status-btn.on.참석{ background:var(--moss); color:#fff; border-color:var(--moss); }
+  button.status-btn.on.대기{ background:var(--clay); color:#fff; border-color:var(--clay); }
+  button.status-btn.on.불참{ background:#999; color:#fff; border-color:#999; }
+
+  input, select, textarea{
+    width:100%; padding:9px 10px; border:1px solid #ddd8c8; border-radius:9px;
+    font-size:14px; font-family:inherit; margin-bottom:8px; background:#fff;
+  }
+  label.f{ font-size:12px; color:#8a8a80; margin-bottom:2px; display:block; }
+
+  .tier-badge{
+    display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700;
+    padding:3px 10px; border-radius:999px; color:#fff;
+  }
+  .tier-badge.tier-0{ background:var(--gold); color:#3a2f10; }
+  .tier-badge.tier-1{ background:#5A8FB0; }
+  .tier-badge.tier-2{ background:var(--moss); }
+  .tier-badge.tier-3{ background:#8b8b83; }
+  .tier-badge.tier-none{ background:#c9c4b4; color:#555; }
+
+  #loginScreen{
+    position:fixed; inset:0; background:rgba(10,20,15,.55);
+    display:none; align-items:center; justify-content:center; padding:24px; z-index:100;
+  }
+  #loginScreen.open{ display:flex; }
+  #loginScreen .box{
+    max-width:360px; margin:0 auto; width:100%; background:var(--fairway); color:#fff;
+    border-radius:18px; padding:24px; position:relative;
+  }
+  #loginScreen .close{
+    position:absolute; top:14px; right:16px; background:none; border:none; color:#fff;
+    font-size:20px; cursor:pointer; opacity:.7;
+  }
+  #loginScreen input{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.25); color:#fff; }
+  #loginScreen input::placeholder{ color:rgba(255,255,255,.5); }
+  #loginError{ color:#ffb4a3; font-size:13px; min-height:18px; }
+  .locked-note{ text-align:center; padding:30px 14px; color:#8a8a80; font-size:13.5px; }
+
+  body.dark{
+    --paper:#121815; --ink:#EDEDE5; --fairway:#0E241C; --fairway-2:#173327;
+    --scorecard:#22281F; --scorecard-line:#3a4038;
+  }
+  body.dark .card{ background:#1A211C; border-color:#2b332c; }
+  body.dark input, body.dark select, body.dark textarea{ background:#1A211C; color:#EDEDE5; border-color:#3a4038; }
+  body.dark nav.tabs{ background:#1A211C; border-color:#2b332c; }
+  body.dark .scorecard .cell{ background:#242b23; border-color:#3a4038; color:#EDEDE5; }
+  body.text-lg{ font-size:17px; }
+  body.text-lg header.top h1{ font-size:32px; }
+  body.text-lg .card h3{ font-size:20px; }
+  .empty{ text-align:center; padding:30px 10px; color:#9a9a90; font-size:13.5px; }
+  .rank-row{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #f0ede2; }
+  .rank-row .n{ width:22px; text-align:center; font-weight:700; color:var(--fairway); }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN (모달) ================= -->
+<div id="loginScreen">
+  <div class="box">
+    <button class="close" onclick="closeLoginModal()">✕</button>
+    <div class="eyebrow" style="color:var(--gold);letter-spacing:.18em;font-size:12px;">의리 골프클럽 (가제)</div>
+    <h1 style="margin:6px 0 18px;">회원 로그인</h1>
+    <label class="f" style="color:rgba(255,255,255,.6)">이름 (목록에서 선택 또는 직접 입력)</label>
+    <select id="namePicker" onchange="document.getElementById('loginName').value=this.value" style="margin-bottom:6px;">
+      <option value="">-- 회원 목록 --</option>
+    </select>
+    <input id="loginName" placeholder="예) 서힘찬">
+    <label class="f" style="color:rgba(255,255,255,.6)">비밀번호 (초기값 0001)</label>
+    <input id="loginPw" type="password" placeholder="••••">
+    <div id="loginError"></div>
+    <button class="btn" style="width:100%;margin-top:8px;background:var(--gold);color:#2b2308;" onclick="doLogin()">로그인</button>
+    <div style="margin:16px 0 6px;border-top:1px solid rgba(255,255,255,.15);"></div>
+    <label class="f" style="color:rgba(255,255,255,.6)">처음이신가요? 이름으로 바로 등록</label>
+    <input id="regName" placeholder="실명 입력">
+    <button class="btn ghost" style="width:100%;background:none;border-color:rgba(255,255,255,.4);color:#fff;" onclick="doSelfRegister()">회원 등록 (초기비번 0001)</button>
+  </div>
+</div>
+
+<!-- ================= APP (로그인 없이도 조회 가능) ================= -->
+<div id="app">
+  <header class="top">
+    <div class="row" style="gap:6px;flex-wrap:wrap;">
+      <button class="btn small ghost" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.3);" onclick="quickChangePw()">🔑 비번변경</button>
+      <button class="btn small ghost" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.3);" onclick="toggleFontSize()">🔤 글자크기</button>
+      <button class="btn small ghost" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.3);" onclick="toggleTheme()">☀️/🌙 테마</button>
+    </div>
+    <div class="eyebrow" id="eyebrowTitle" style="margin-top:10px;">의리 골프클럽 (가제)</div>
+    <h1 id="headerTitle">이번 주</h1>
+    <div class="sub">03월~12월 매주 수요일 정기 라운딩 · <span id="versionTag" class="num"></span></div>
+    <div class="row" style="margin-top:12px;">
+      <div class="me-badge" id="meBadge" style="display:none;"></div>
+      <button class="btn small" id="loginNavBtn" style="background:var(--gold);color:#2b2308;" onclick="openLoginModal()">로그인</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- 홈 -->
+    <section id="tab-home" class="active">
+      <div class="card" id="noticeCard" style="background:var(--fairway-2);color:#fff;border:none;"></div>
+      <div class="card">
+        <h3>이번 주 일정</h3>
+        <div id="homeSchedule"><div class="empty">불러오는 중…</div></div>
+      </div>
+      <div class="card">
+        <h3>지난주 결과</h3>
+        <div id="homeResult"><div class="empty">불러오는 중…</div></div>
+      </div>
+    </section>
+
+    <!-- 일정 -->
+    <section id="tab-schedule">
+      <div class="card" id="scheduleAddCard">
+        <div class="row"><h3 style="margin:0">일정 추가</h3></div>
+        <label class="f">날짜</label><input id="fDate" type="date">
+        <label class="f">이벤트 타입</label>
+        <select id="fType"><option>정기</option><option>백세클럽</option><option>100세클럽</option><option>제외</option></select>
+        <label class="f">Cc (골프장/코스명)</label><input id="fCourse" placeholder="예) 로제비앙 비앙코스">
+        <label class="f">행정구역</label><input id="fRegion" placeholder="예) 경기도 남양주">
+        <label class="f">티업 (시간)</label><input id="fTee" placeholder="예) 16:59">
+        <label class="f">시간대</label>
+        <select id="fSlot"><option value="">-</option><option>야간</option><option>주간</option></select>
+        <label class="f">구성원 / 메모</label><input id="fNote" placeholder="예) 김충기,최은상,방대한 · 4인필수 · 그린피 15만">
+        <button class="btn" onclick="addSchedule()">일정 등록</button>
+      </div>
+      <div class="card" style="display:flex;gap:6px;padding:10px;">
+        <button class="btn small ghost" id="viewBtn-month" onclick="setScheduleView('month')">월별보기</button>
+        <button class="btn small ghost" id="viewBtn-quarter" onclick="setScheduleView('quarter')">분기보기(4개월)</button>
+        <button class="btn small ghost" id="viewBtn-year" onclick="setScheduleView('year')">연간보기</button>
+      </div>
+      <div id="scheduleList"></div>
+    </section>
+
+    <!-- 랭킹 -->
+    <section id="tab-rank">
+      <div class="card">
+        <div class="row">
+          <h3 style="margin:0">등급 · 랭킹</h3>
+          <select id="tierFilter" style="width:auto;margin:0" onchange="loadRanking()">
+            <option value="all">전체 등급</option>
+            <option value="0">0티어 (≤85)</option>
+            <option value="1">1티어 (86~95)</option>
+            <option value="2">2티어 (96~105)</option>
+            <option value="3">3티어 (106~)</option>
+          </select>
+        </div>
+        <div id="rankList" style="margin-top:8px;"></div>
+      </div>
+    </section>
+
+    <!-- 마이페이지 -->
+    <section id="tab-my">
+      <div class="card">
+        <h3>내 등급</h3>
+        <div id="myTierBox"></div>
+      </div>
+      <div class="card">
+        <div class="row"><h3 style="margin:0">스코어 등록</h3></div>
+        <label class="f">날짜</label><input id="rDate" type="date">
+        <label class="f">코스</label><input id="rCourse" placeholder="예) 남양주 파랑새">
+        <label class="f">스코어</label><input id="rScore" type="number" placeholder="예) 97">
+        <button class="btn" onclick="submitRound()">등록</button>
+      </div>
+      <div class="card">
+        <h3>최근 라운드</h3>
+        <div id="myScorecard" class="scorecard"></div>
+        <div id="myHistory" style="margin-top:10px;"></div>
+      </div>
+      <div class="card">
+        <h3>비밀번호 변경</h3>
+        <input id="newPw" type="password" placeholder="새 비밀번호">
+        <button class="btn ghost" onclick="changePw()">변경하기</button>
+      </div>
+    </section>
+
+    <!-- 회원별 보기 -->
+    <section id="tab-members">
+      <div class="card">
+        <label class="f">회원 선택</label>
+        <select id="memberPicker" onchange="loadMemberView()"></select>
+        <div id="memberView" style="margin-top:10px;"></div>
+      </div>
+    </section>
+
+    <!-- 관리자 -->
+    <section id="tab-admin">
+      <h2 style="font-size:20px;margin:4px 0 10px;">🔒 운영패널</h2>
+      <div class="card">
+        <h3>클럽 명칭</h3>
+        <input id="cfgClubName" placeholder="예) 의리 골프클럽">
+        <button class="btn" onclick="saveClubName()">저장</button>
+      </div>
+      <div class="card">
+        <h3>회원 관리</h3>
+        <div id="adminMembers"></div>
+      </div>
+      <div class="card">
+        <h3>등급 기준값</h3>
+        <label class="f">0티어 상한</label><input id="cfgT0" type="number">
+        <label class="f">1티어 상한</label><input id="cfgT1" type="number">
+        <label class="f">2티어 상한</label><input id="cfgT2" type="number">
+        <button class="btn" onclick="saveTierBounds()">저장</button>
+      </div>
+      <div class="card">
+        <h3>공지 / 매너 안내 (AI 관리자 댓글)</h3>
+        <input id="noticeInput" placeholder="예) 의리합시다, 의리! 라운딩 30분 전 도착은 매너입니다">
+        <button class="btn" onclick="addNotice()">등록</button>
+        <div id="noticeAdminList" style="margin-top:10px;"></div>
+      </div>
+      <div class="card">
+        <h3>업데이트 내역</h3>
+        <div id="updateLog"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <button class="active" data-tab="home" onclick="showTab('home')"><span class="ic">🏠</span>홈</button>
+    <button data-tab="schedule" onclick="showTab('schedule')"><span class="ic">📅</span>일정</button>
+    <button data-tab="rank" onclick="showTab('rank')"><span class="ic">🏆</span>랭킹</button>
+    <button data-tab="my" onclick="showTab('my')"><span class="ic">👤</span>마이</button>
+    <button data-tab="members" onclick="showTab('members')"><span class="ic">👥</span>회원</button>
+    <button id="adminTabBtn" data-tab="admin" onclick="showTab('admin')" style="display:none"><span class="ic">🔒</span>관리자</button>
+  </nav>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// ⚠️ 여기에 실제 Supabase 프로젝트 값 입력
+const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabase = supabase;
+
+const SITE_VERSION = 'v1.4';
+const SITE_LOG = [
+  { v:'v1.4', note:'로그인 없이 홈/일정/랭킹 바로 열람, 회원명 선택+자체등록 로그인, 비번변경·글자크기·라이트/다크 테마, 운영패널(공지·매너안내) 추가, 일정에 행정구역·티업시간 필드 추가' },
+  { v:'v1.3', note:'일정·티어 리스트에서 중복 제거한 전체 회원 명단(seed_members.sql) 추가' },
+  { v:'v1.2', note:'일정 추가 전체 회원 오픈, 일정 리스트 월별/분기(4개월)/연간 보기 추가' },
+  { v:'v1.1', note:'클럽명 수정 기능, 운영진 권한 부여/해제, 업데이트 버전 표시 추가' },
+  { v:'v1.0', note:'최초 버전 — 일정/참석/스코어/티어/랭킹/마이페이지/관리자' },
+];
+
+let me = JSON.parse(sessionStorage.getItem('me') || 'null');
+
+const tierLabel = (t) => t===0?'0티어':t===1?'1티어':t===2?'2티어':t===3?'3티어':'예정등급';
+const tierClass = (t) => t===0?'tier-0':t===1?'tier-1':t===2?'tier-2':t===3?'tier-3':'tier-none';
+
+async function loadClubName(){
+  const { data } = await supabase.from('config').select('value').eq('key','club_name').single();
+  const name = data?.value?.name;
+  if(name){
+    document.getElementById('eyebrowTitle').textContent = name;
+    document.title = name;
+    const cfgInput = document.getElementById('cfgClubName');
+    if(cfgInput) cfgInput.value = name;
+  }
+}
+window.saveClubName = async function(){
+  const name = document.getElementById('cfgClubName').value.trim();
+  if(!name) return;
+  await supabase.from('config').update({ value: { name } }).eq('key','club_name');
+  document.getElementById('eyebrowTitle').textContent = name;
+  document.title = name;
+  alert('클럽 명칭이 저장되었습니다.');
+};
+
+async function loadNamePicker(){
+  const { data } = await supabase.from('members_public').select('name').order('name');
+  const el = document.getElementById('namePicker');
+  if(el) el.innerHTML = '<option value="">-- 회원 목록 --</option>' + (data||[]).map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
+}
+window.loadNamePicker = loadNamePicker;
+
+window.doLogin = async function(){
+  const name = document.getElementById('loginName').value.trim();
+  const pw = document.getElementById('loginPw').value.trim();
+  const err = document.getElementById('loginError');
+  err.textContent = '';
+  if(!name || !pw){ err.textContent='이름과 비밀번호를 입력하세요.'; return; }
+  const { data, error } = await supabase.rpc('verify_login', { p_name: name, p_password: pw });
+  if(error) console.error('login error', error);
+  if(error || !data || data.length===0){ err.textContent='이름 또는 비밀번호가 올바르지 않습니다. (Supabase 연결/이름 철자를 확인해보세요)'; return; }
+  me = data[0];
+  sessionStorage.setItem('me', JSON.stringify(me));
+  closeLoginModal();
+  revealMemberUI();
+};
+
+window.doSelfRegister = async function(){
+  const name = document.getElementById('regName').value.trim();
+  const err = document.getElementById('loginError');
+  err.textContent = '';
+  if(!name){ err.textContent='이름을 입력하세요.'; return; }
+  const { data, error } = await supabase.rpc('self_register', { p_name: name });
+  if(error || !data || data.length===0){
+    err.textContent = error?.message?.includes('duplicate') ? '이미 등록된 이름이에요. 로그인해주세요.' : '등록에 실패했습니다.';
+    return;
+  }
+  me = data[0];
+  sessionStorage.setItem('me', JSON.stringify(me));
+  closeLoginModal();
+  revealMemberUI();
+  alert('등록되었습니다. 초기 비밀번호는 0001입니다.');
+};
+
+window.toggleFontSize = function(){
+  document.body.classList.toggle('text-lg');
+  localStorage.setItem('fontLg', document.body.classList.contains('text-lg') ? '1' : '0');
+};
+window.toggleTheme = function(){
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+};
+window.quickChangePw = async function(){
+  if(!requireLogin()) return;
+  const pw = prompt('새 비밀번호를 입력하세요');
+  if(!pw) return;
+  await supabase.rpc('update_my_password', { p_member_id: me.id, p_new_password: pw });
+  alert('비밀번호가 변경되었습니다.');
+};
+if(localStorage.getItem('fontLg')==='1') document.body.classList.add('text-lg');
+if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark');
+
+window.openLoginModal = function(){ document.getElementById('loginScreen').classList.add('open'); };
+window.closeLoginModal = function(){ document.getElementById('loginScreen').classList.remove('open'); };
+function requireLogin(){
+  if(!me){ openLoginModal(); return false; }
+  return true;
+}
+window.logout = function(){
+  me = null; sessionStorage.removeItem('me');
+  document.getElementById('meBadge').style.display='none';
+  document.getElementById('loginNavBtn').style.display='inline-flex';
+  document.getElementById('adminTabBtn').style.display='none';
+  showTab('home');
+};
+
+// 페이지에 들어오면 로그인 여부와 무관하게 바로 보이는 공개 데이터
+function publicBoot(){
+  document.getElementById('versionTag').textContent = SITE_VERSION;
+  document.getElementById('updateLog').innerHTML = SITE_LOG.map(l=>
+    `<div class="row" style="padding:5px 0;border-bottom:1px solid #f2f0e6;">
+       <span class="num" style="font-weight:700;color:var(--fairway)">${l.v}</span>
+       <span class="muted" style="flex:1;margin-left:10px;">${l.note}</span>
+     </div>`).join('');
+  loadClubName();
+  loadNotices();
+  loadHome(); loadSchedules(); loadRanking(); loadMembersPicker(); loadNamePicker();
+  document.getElementById('viewBtn-month').classList.add('view-active');
+  if(me) revealMemberUI();
+}
+
+function revealMemberUI(){
+  document.getElementById('meBadge').style.display='inline-flex';
+  document.getElementById('loginNavBtn').style.display='none';
+  document.getElementById('meBadge').innerHTML =
+    `<span class="tier-dot ${tierClass(me.tier)}"></span> ${me.name} · ${me.role==='master'?'마스터':me.role==='staff'?'운영진':'회원'} · ${tierLabel(me.tier)} <span style="opacity:.6;margin-left:6px;cursor:pointer;" onclick="logout()">로그아웃</span>`;
+  if(me.role==='master' || me.role==='staff'){
+    document.getElementById('adminTabBtn').style.display='flex';
+    loadAdmin();
+    loadNoticeAdminList();
+  }
+  loadMy();
+}
+publicBoot();
+
+window.showTab = function(name){
+  if(name==='my' && !requireLogin()) return;
+  if(name==='admin' && (!me || (me.role!=='master' && me.role!=='staff'))){ requireLogin(); return; }
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('active', s.id==='tab-'+name));
+};
+
+// ---------- 공지(AI 관리자 댓글) ----------
+async function loadNotices(){
+  const { data } = await supabase.from('notices').select('*').order('created_at', { ascending:false }).limit(1);
+  const el = document.getElementById('noticeCard');
+  if(data && data.length){
+    el.innerHTML = `<div style="font-size:13px;opacity:.75;">📣 관리자 안내</div>
+      <div style="margin-top:4px;font-weight:700;">${data[0].message}</div>`;
+  } else {
+    el.style.display='none';
+  }
+}
+
+// ---------- 홈 ----------
+async function loadHome(){
+  const today = new Date();
+  const in7 = new Date(); in7.setDate(today.getDate()+7);
+  const { data } = await supabase.from('schedules').select('*')
+    .gte('date', today.toISOString().slice(0,10))
+    .lte('date', in7.toISOString().slice(0,10))
+    .order('date');
+  const el = document.getElementById('homeSchedule');
+  el.innerHTML = (data && data.length) ? data.map(scheduleCard).join('') : '<div class="empty">다가오는 일정이 없어요.</div>';
+}
+
+function scheduleCard(s){
+  return `<div class="card" style="margin-bottom:8px;">
+    <div class="row">
+      <div>
+        <span class="pill ${s.event_type}">${s.event_type}</span>
+        ${s.time_slot?`<span class="muted">${s.time_slot}</span>`:''}
+      </div>
+      <span class="pill ${s.reservation_status}">${s.reservation_status}</span>
+    </div>
+    <div style="margin-top:6px;font-weight:700;">${s.date}${s.course_name?' · '+s.course_name:''}</div>
+    <div class="muted" style="margin-top:2px;">
+      ${s.region?`📍 ${s.region}`:''} ${s.tee_time?`· ⏱ ${s.tee_time}`:''}
+    </div>
+    ${s.note?`<div class="muted" style="margin-top:4px;">👥 ${s.note}</div>`:''}
+    <div style="margin-top:8px;display:flex;gap:6px;">
+      <button class="status-btn" onclick="setStatus('${s.id}','참석')">참석</button>
+      <button class="status-btn" onclick="setStatus('${s.id}','대기')">대기(미정)</button>
+      <button class="status-btn" onclick="setStatus('${s.id}','불참')">불참</button>
+    </div>
+  </div>`;
+}
+
+window.setStatus = async function(scheduleId, status){
+  if(!requireLogin()) return;
+  await supabase.rpc('set_attendance', { p_schedule_id: scheduleId, p_member_id: me.id, p_status: status });
+  loadHome(); loadSchedules();
+};
+
+// ---------- 일정 ----------
+window.addSchedule = async function(){
+  if(!requireLogin()) return;
+  const payload = {
+    date: document.getElementById('fDate').value,
+    event_type: document.getElementById('fType').value,
+    time_slot: document.getElementById('fSlot').value || null,
+    region: document.getElementById('fRegion').value || null,
+    tee_time: document.getElementById('fTee').value || null,
+    course_name: document.getElementById('fCourse').value || null,
+    note: document.getElementById('fNote').value || null,
+    created_by: me.id,
+  };
+  if(!payload.date){ alert('날짜를 입력하세요.'); return; }
+  await supabase.from('schedules').insert(payload);
+  loadSchedules(); loadHome();
+};
+
+let scheduleViewMode = 'month';
+window.setScheduleView = function(mode){
+  scheduleViewMode = mode;
+  ['month','quarter','year'].forEach(m=>{
+    document.getElementById('viewBtn-'+m).classList.toggle('view-active', m===mode);
+  });
+  loadSchedules();
+};
+
+function groupKey(dateStr, mode){
+  const [y,m] = dateStr.split('-').map(Number);
+  if(mode==='year') return `${y}년`;
+  if(mode==='quarter'){
+    const block = Math.floor((m-1)/4); // 0:1~4월, 1:5~8월, 2:9~12월
+    return `${y}년 ${block*4+1}~${block*4+4}월`;
+  }
+  return `${y}년 ${m}월`;
+}
+
+async function loadSchedules(){
+  const { data } = await supabase.from('schedules').select('*').order('date', { ascending:true });
+  const el = document.getElementById('scheduleList');
+  if(!data || data.length===0){ el.innerHTML = '<div class="empty">등록된 일정이 없어요.</div>'; return; }
+  const groups = {};
+  data.forEach(s=>{
+    const k = groupKey(s.date, scheduleViewMode);
+    (groups[k] = groups[k] || []).push(s);
+  });
+  el.innerHTML = Object.entries(groups).map(([k, items])=>
+    `<div class="group-header">${k}</div>${items.map(scheduleCard).join('')}`
+  ).join('');
+}
+
+// ---------- 랭킹 ----------
+async function loadRanking(){
+  const filter = document.getElementById('tierFilter').value;
+  let q = supabase.from('members_public').select('*').order('tier', { ascending:true, nullsFirst:false });
+  if(filter !== 'all') q = q.eq('tier', Number(filter));
+  const { data } = await q;
+  const el = document.getElementById('rankList');
+  el.innerHTML = (data && data.length) ? data.map((m,i)=>`
+    <div class="rank-row">
+      <div class="n">${i+1}</div>
+      <div style="flex:1">${m.name} <span class="muted">${m.group_type||''}</span></div>
+      <span class="tier-badge ${tierClass(m.tier)}">${tierLabel(m.tier)}</span>
+    </div>`).join('') : '<div class="empty">데이터가 없어요.</div>';
+}
+window.loadRanking = loadRanking;
+
+// ---------- 마이페이지 ----------
+async function loadMy(){
+  document.getElementById('myTierBox').innerHTML =
+    `<span class="tier-badge ${tierClass(me.tier)}">${tierLabel(me.tier)}</span>
+     <span class="muted" style="margin-left:8px;">최근 5게임 평균 기준</span>`;
+  const { data } = await supabase.from('rounds').select('*').eq('member_id', me.id).order('date', { ascending:false }).limit(10);
+  const recent5 = (data||[]).slice(0,5);
+  const best = recent5.length ? Math.min(...recent5.map(r=>r.score)) : null;
+  document.getElementById('myScorecard').innerHTML = recent5.length ? recent5.map(r=>`
+    <div class="cell ${r.score===best?'best':''}">
+      <div class="d">${r.date.slice(5)}</div>
+      <div class="s num">${r.score}</div>
+    </div>`).join('') : '<div class="empty">아직 등록된 라운드가 없어요.</div>';
+  document.getElementById('myHistory').innerHTML = (data||[]).map(r=>`
+    <div class="row" style="padding:6px 0;border-bottom:1px solid #f2f0e6;">
+      <span class="muted">${r.date}</span><span>${r.course_name||''}</span><span class="num" style="font-weight:700">${r.score}</span>
+    </div>`).join('');
+}
+window.submitRound = async function(){
+  const payload = {
+    member_id: me.id,
+    date: document.getElementById('rDate').value,
+    course_name: document.getElementById('rCourse').value || null,
+    score: Number(document.getElementById('rScore').value),
+  };
+  if(!payload.date || !payload.score){ alert('날짜와 스코어를 입력하세요.'); return; }
+  await supabase.from('rounds').insert(payload);
+  // 트리거가 members.tier를 재계산하므로 내 정보만 다시 읽어와 반영
+  const { data: updated } = await supabase.from('members_public').select('*').eq('id', me.id).single();
+  if(updated){
+    me = { ...me, tier: updated.tier };
+    sessionStorage.setItem('me', JSON.stringify(me));
+    document.getElementById('meBadge').innerHTML =
+      `<span class="tier-dot ${tierClass(me.tier)}"></span> ${me.name} · ${me.role==='master'?'마스터':me.role==='staff'?'운영진':'회원'} · ${tierLabel(me.tier)}`;
+  }
+  document.getElementById('rScore').value=''; document.getElementById('rCourse').value='';
+  loadMy(); loadRanking();
+};
+window.changePw = async function(){
+  const pw = document.getElementById('newPw').value.trim();
+  if(!pw){ return; }
+  await supabase.rpc('update_my_password', { p_member_id: me.id, p_new_password: pw });
+  alert('비밀번호가 변경되었습니다.');
+  document.getElementById('newPw').value='';
+};
+
+// ---------- 회원별 보기 ----------
+async function loadMembersPicker(){
+  const { data } = await supabase.from('members_public').select('id,name').order('name');
+  document.getElementById('memberPicker').innerHTML =
+    (data||[]).map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  if(data && data.length) loadMemberView();
+}
+window.loadMemberView = async function(){
+  const id = document.getElementById('memberPicker').value;
+  const { data: m } = await supabase.from('members_public').select('*').eq('id', id).single();
+  const { data: rounds } = await supabase.from('rounds').select('*').eq('member_id', id).order('date',{ascending:false}).limit(10);
+  document.getElementById('memberView').innerHTML = `
+    <div class="row"><h3 style="margin:0">${m.name}</h3><span class="tier-badge ${tierClass(m.tier)}">${tierLabel(m.tier)}</span></div>
+    <div class="scorecard" style="margin-top:8px;">
+      ${(rounds||[]).slice(0,5).map(r=>`<div class="cell"><div class="d">${r.date.slice(5)}</div><div class="s num">${r.score}</div></div>`).join('') || '<div class="empty">기록 없음</div>'}
+    </div>`;
+};
+
+// ---------- 관리자 ----------
+async function loadAdmin(){
+  const { data } = await supabase.from('members_public').select('*').order('name');
+  document.getElementById('adminMembers').innerHTML = (data||[]).map(m=>{
+    const roleLabel = m.role==='master'?'마스터':m.role==='staff'?'운영진':'회원';
+    const roleBtn = m.role==='master' ? '' :
+      m.role==='staff'
+        ? `<button class="btn small ghost" onclick="setRole('${m.id}','member')">운영진 해제</button>`
+        : `<button class="btn small ghost" onclick="setRole('${m.id}','staff')">운영진 지정</button>`;
+    return `<div class="row" style="padding:6px 0;border-bottom:1px solid #f2f0e6;">
+      <span>${m.name} <span class="muted">${roleLabel}</span></span>
+      <span style="display:flex;gap:6px;">
+        ${roleBtn}
+        <button class="btn small ghost" onclick="resetPassword('${m.id}')">비번 초기화</button>
+      </span>
+    </div>`;
+  }).join('');
+  const { data: cfg } = await supabase.from('config').select('*').eq('key','tier_bounds').single();
+  if(cfg){
+    document.getElementById('cfgT0').value = cfg.value.tier0_max;
+    document.getElementById('cfgT1').value = cfg.value.tier1_max;
+    document.getElementById('cfgT2').value = cfg.value.tier2_max;
+  }
+}
+window.addNotice = async function(){
+  const message = document.getElementById('noticeInput').value.trim();
+  if(!message) return;
+  await supabase.from('notices').insert({ message, created_by: me.id });
+  document.getElementById('noticeInput').value='';
+  loadNotices(); loadNoticeAdminList();
+};
+window.deleteNotice = async function(id){
+  await supabase.from('notices').delete().eq('id', id);
+  loadNotices(); loadNoticeAdminList();
+};
+async function loadNoticeAdminList(){
+  const { data } = await supabase.from('notices').select('*').order('created_at', { ascending:false }).limit(10);
+  document.getElementById('noticeAdminList').innerHTML = (data||[]).map(n=>`
+    <div class="row" style="padding:6px 0;border-bottom:1px solid #f2f0e6;">
+      <span style="flex:1;">${n.message}</span>
+      <button class="btn small ghost" onclick="deleteNotice('${n.id}')">삭제</button>
+    </div>`).join('');
+}
+
+window.setRole = async function(memberId, role){
+  await supabase.rpc('set_member_role', { p_member_id: memberId, p_role: role });
+  loadAdmin();
+};
+window.resetPassword = async function(memberId){
+  await supabase.rpc('update_my_password', { p_member_id: memberId, p_new_password: '0001' });
+  alert('0001로 초기화되었습니다.');
+};
+window.saveTierBounds = async function(){
+  const value = {
+    tier0_max: Number(document.getElementById('cfgT0').value),
+    tier1_max: Number(document.getElementById('cfgT1').value),
+    tier2_max: Number(document.getElementById('cfgT2').value),
+  };
+  await supabase.from('config').update({ value }).eq('key','tier_bounds');
+  alert('저장되었습니다. (다음 스코어 등록부터 반영)');
+};
+</script>
+</body>
+</html>
