@@ -36,8 +36,9 @@
   /* ---- Header ---- */
   header.top{
     background:var(--fairway); color:#fff; padding:18px 20px 22px;
-    border-radius:0 0 22px 22px;
+    border-radius:0 0 22px 22px; text-align:center;
   }
+  header.top .row{ justify-content:center; }
   header.top .eyebrow{ font-size:12px; letter-spacing:.18em; color:var(--gold); text-transform:uppercase; }
   header.top h1{ margin:4px 0 0; font-size:28px; }
   header.top .sub{ font-size:13px; opacity:.75; margin-top:2px; }
@@ -45,6 +46,16 @@
     display:inline-flex; align-items:center; gap:6px; margin-top:12px;
     background:rgba(255,255,255,.1); padding:6px 12px; border-radius:999px; font-size:13px;
   }
+  .profile-bar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .pf-pill{
+    background:rgba(255,255,255,.1); color:#fff; padding:6px 14px; border-radius:999px;
+    font-size:12.5px; border:none; display:inline-flex; align-items:center; gap:5px;
+  }
+  .pf-pill.pf-edit{ background:var(--moss); font-weight:700; cursor:pointer; }
+  .pf-pill.pf-logout{ background:rgba(255,255,255,.06); opacity:.7; cursor:pointer; }
+  .pf-pill.pf-name{ background:rgba(200,166,75,.25); color:var(--gold); font-weight:700; }
+  .pf-pill.pf-role{ background:rgba(184,118,62,.32); color:#ffd9b0; font-weight:700; }
+  .pf-pill.pf-group{ background:rgba(255,255,255,.08); color:rgba(255,255,255,.75); }
   .tier-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
   .tier-0{ background:var(--gold); } .tier-1{ background:#7FB3D5; }
   .tier-2{ background:var(--moss); } .tier-3{ background:#9A9A9A; }
@@ -159,6 +170,28 @@
   .empty{ text-align:center; padding:30px 10px; color:#9a9a90; font-size:13.5px; }
   .rank-row{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #f0ede2; }
   .rank-row .n{ width:22px; text-align:center; font-weight:700; color:var(--fairway); }
+
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:10px; }
+  .cal-dow{ text-align:center; font-size:11px; color:#9a9a90; padding:4px 0; }
+  .cal-day{
+    aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border-radius:8px; font-size:13px; cursor:pointer; gap:2px;
+  }
+  .cal-day:not(.blank):hover{ background:#f2f0e6; }
+  .cal-day.blank{ cursor:default; }
+  .cal-day.today{ background:var(--fairway); color:#fff; font-weight:700; }
+  .cal-day.selected{ outline:2px solid var(--gold); }
+  .cal-day .dot{ width:5px; height:5px; border-radius:50%; background:var(--gold); }
+  body.dark .cal-day:not(.blank):hover{ background:#242b23; }
+
+  .seg-control{ display:flex; background:#EEE; border-radius:12px; padding:4px; gap:4px; }
+  .seg-control button{
+    flex:1; border:none; background:none; padding:10px 4px; border-radius:9px;
+    font-size:13px; font-weight:700; color:#8a8a80; cursor:pointer;
+  }
+  .seg-control button.view-active{ background:var(--fairway); color:#fff; }
+  body.dark .seg-control{ background:#1A211C; }
+  body.dark .seg-control button{ color:#8a8a80; }
 </style>
 </head>
 <body>
@@ -197,7 +230,14 @@
     <h1 id="headerTitle">이번 주</h1>
     <div class="sub">03월~12월 매주 수요일 정기 라운딩 · <span id="versionTag" class="num"></span></div>
     <div class="row" style="margin-top:12px;">
-      <div class="me-badge" id="meBadge" style="display:none;"></div>
+      <div class="profile-bar" id="profileBar" style="display:none;">
+        <span class="pf-pill pf-name" id="pfName"></span>
+        <span class="pf-pill" id="pfTier"></span>
+        <span class="pf-pill pf-role" id="pfRole"></span>
+        <span class="pf-pill pf-group" id="pfGroup"></span>
+        <button class="pf-pill pf-edit" onclick="editProfile()">변경</button>
+        <button class="pf-pill pf-logout" onclick="logout()">로그아웃</button>
+      </div>
       <button class="btn small" id="loginNavBtn" style="background:var(--gold);color:#2b2308;" onclick="openLoginModal()">로그인</button>
     </div>
   </header>
@@ -206,18 +246,29 @@
     <!-- 홈 -->
     <section id="tab-home" class="active">
       <div class="card" id="noticeCard" style="background:var(--fairway-2);color:#fff;border:none;"></div>
-      <div class="card">
-        <h3>이번 주 일정</h3>
-        <div id="homeSchedule"><div class="empty">불러오는 중…</div></div>
-      </div>
-      <div class="card">
-        <h3>지난주 결과</h3>
-        <div id="homeResult"><div class="empty">불러오는 중…</div></div>
-      </div>
-    </section>
 
-    <!-- 일정 -->
-    <section id="tab-schedule">
+      <div class="card">
+        <div class="row">
+          <button class="btn small ghost" onclick="calMonthShift(-1)">‹</button>
+          <h3 id="calTitle" style="margin:0;">달력</h3>
+          <button class="btn small ghost" onclick="calMonthShift(1)">›</button>
+        </div>
+        <div id="calGrid" class="cal-grid"></div>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn small ghost" onclick="calGoToday()">오늘로 이동</button>
+          <span class="muted" style="font-size:11.5px;">🟡 표시된 날 = 일정 있음</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:10px;">
+        <div class="seg-control">
+          <button id="viewBtn-month" onclick="setScheduleView('month')">월별보기</button>
+          <button id="viewBtn-quarter" onclick="setScheduleView('quarter')">분기보기</button>
+          <button id="viewBtn-year" onclick="setScheduleView('year')">연간보기</button>
+        </div>
+      </div>
+      <div id="scheduleList"></div>
+
       <div class="card" id="scheduleAddCard">
         <div class="row"><h3 style="margin:0">일정 추가</h3></div>
         <label class="f">날짜</label><input id="fDate" type="date">
@@ -231,12 +282,6 @@
         <label class="f">구성원 / 메모</label><input id="fNote" placeholder="예) 김충기,최은상,방대한 · 4인필수 · 그린피 15만">
         <button class="btn" onclick="addSchedule()">일정 등록</button>
       </div>
-      <div class="card" style="display:flex;gap:6px;padding:10px;">
-        <button class="btn small ghost" id="viewBtn-month" onclick="setScheduleView('month')">월별보기</button>
-        <button class="btn small ghost" id="viewBtn-quarter" onclick="setScheduleView('quarter')">분기보기(4개월)</button>
-        <button class="btn small ghost" id="viewBtn-year" onclick="setScheduleView('year')">연간보기</button>
-      </div>
-      <div id="scheduleList"></div>
     </section>
 
     <!-- 랭킹 -->
@@ -256,37 +301,42 @@
       </div>
     </section>
 
-    <!-- 마이페이지 -->
-    <section id="tab-my">
-      <div class="card">
-        <h3>내 등급</h3>
-        <div id="myTierBox"></div>
-      </div>
-      <div class="card">
-        <div class="row"><h3 style="margin:0">스코어 등록</h3></div>
-        <label class="f">날짜</label><input id="rDate" type="date">
-        <label class="f">코스</label><input id="rCourse" placeholder="예) 남양주 파랑새">
-        <label class="f">스코어</label><input id="rScore" type="number" placeholder="예) 97">
-        <button class="btn" onclick="submitRound()">등록</button>
-      </div>
-      <div class="card">
-        <h3>최근 라운드</h3>
-        <div id="myScorecard" class="scorecard"></div>
-        <div id="myHistory" style="margin-top:10px;"></div>
-      </div>
-      <div class="card">
-        <h3>비밀번호 변경</h3>
-        <input id="newPw" type="password" placeholder="새 비밀번호">
-        <button class="btn ghost" onclick="changePw()">변경하기</button>
-      </div>
-    </section>
-
-    <!-- 회원별 보기 -->
+    <!-- 마이/회원 -->
     <section id="tab-members">
       <div class="card">
-        <label class="f">회원 선택</label>
+        <label class="f">회원 선택 (기본: 나)</label>
         <select id="memberPicker" onchange="loadMemberView()"></select>
-        <div id="memberView" style="margin-top:10px;"></div>
+      </div>
+
+      <div id="selfPanel">
+        <div class="card">
+          <h3>내 등급</h3>
+          <div id="myTierBox"></div>
+        </div>
+        <div class="card">
+          <div class="row"><h3 style="margin:0">스코어 등록</h3></div>
+          <label class="f">날짜</label><input id="rDate" type="date">
+          <label class="f">코스</label><input id="rCourse" placeholder="예) 남양주 파랑새">
+          <label class="f">스코어</label><input id="rScore" type="number" placeholder="예) 97">
+          <button class="btn" onclick="submitRound()">등록</button>
+        </div>
+        <div class="card">
+          <h3>최근 라운드</h3>
+          <div id="myScorecard" class="scorecard"></div>
+          <div id="myHistory" style="margin-top:10px;"></div>
+        </div>
+        <div class="card">
+          <h3>비밀번호 변경</h3>
+          <input id="newPw" type="password" placeholder="새 비밀번호">
+          <button class="btn ghost" onclick="changePw()">변경하기</button>
+        </div>
+      </div>
+
+      <div id="otherPanel" style="display:none;">
+        <div class="card">
+          <div class="row"><h3 style="margin:0" id="otherName"></h3><span class="tier-badge" id="otherTierBadge"></span></div>
+          <div class="scorecard" id="otherScorecard" style="margin-top:8px;"></div>
+        </div>
       </div>
     </section>
 
@@ -324,10 +374,8 @@
 
   <nav class="tabs">
     <button class="active" data-tab="home" onclick="showTab('home')"><span class="ic">🏠</span>홈</button>
-    <button data-tab="schedule" onclick="showTab('schedule')"><span class="ic">📅</span>일정</button>
     <button data-tab="rank" onclick="showTab('rank')"><span class="ic">🏆</span>랭킹</button>
-    <button data-tab="my" onclick="showTab('my')"><span class="ic">👤</span>마이</button>
-    <button data-tab="members" onclick="showTab('members')"><span class="ic">👥</span>회원</button>
+    <button data-tab="members" onclick="showTab('members')"><span class="ic">👤</span>마이/회원</button>
     <button id="adminTabBtn" data-tab="admin" onclick="showTab('admin')" style="display:none"><span class="ic">🔒</span>관리자</button>
   </nav>
 </div>
@@ -337,12 +385,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // ⚠️ 여기에 실제 Supabase 프로젝트 값 입력
 const SUPABASE_URL = 'https://qfrrshpqvvglzxankycq.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmcnJzaHBxdnZnbHp4YW5reWNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNDc4MzcsImV4cCI6MjEwMDgyMzgzN30.9a3cO1POgMIjKvYVzaHcs_tHCZV9J48L4QV6T9qQLgY';
+const SUPABASE_ANON_KEY = 'sb_publishable_Ge73xpuuqWqblTW82xwyCg_G3E2z4Kh';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabase = supabase;
 
-const SITE_VERSION = 'v1.4';
+const SITE_VERSION = 'v1.9';
 const SITE_LOG = [
+  { v:'v1.9', note:'마이페이지·회원별 보기를 "마이/회원" 탭 하나로 통합(기본값=나, 다른 회원 선택시 읽기전용). 찬조금/순위별 지원금 자동계산 규칙은 상황마다 달라 보류 — 금액은 계속 수동 입력 방식 유지' },
+  { v:'v1.8', note:'헤더·프로필바 가운데 정렬로 집중도 높이고, 월별/분기/연간 보기를 이그니스식 세그먼트 탭바로 재구성' },
+  { v:'v1.7', note:'프로필 바 pill 색상을 이그니스 실제 소스(name-tag/staff-tag/district-tag) 참조해 항목별로 구분되게 조정' },
+  { v:'v1.6', note:'이그니스 사이트 스타일의 프로필 알약(pill) 바 추가 — 이름/등급/역할/소속 표시 + 변경·로그아웃 버튼, 소속 자체수정 기능' },
+  { v:'v1.5', note:'홈 화면에 달력(일정 있는 날 점 표시, 월 이동, 날짜 클릭 필터) 추가, 하단 네비에서 "일정" 탭 제거 후 홈으로 통합' },
   { v:'v1.4', note:'로그인 없이 홈/일정/랭킹 바로 열람, 회원명 선택+자체등록 로그인, 비번변경·글자크기·라이트/다크 테마, 운영패널(공지·매너안내) 추가, 일정에 행정구역·티업시간 필드 추가' },
   { v:'v1.3', note:'일정·티어 리스트에서 중복 제거한 전체 회원 명단(seed_members.sql) 추가' },
   { v:'v1.2', note:'일정 추가 전체 회원 오픈, 일정 리스트 월별/분기(4개월)/연간 보기 추가' },
@@ -439,7 +492,7 @@ function requireLogin(){
 }
 window.logout = function(){
   me = null; sessionStorage.removeItem('me');
-  document.getElementById('meBadge').style.display='none';
+  document.getElementById('profileBar').style.display='none';
   document.getElementById('loginNavBtn').style.display='inline-flex';
   document.getElementById('adminTabBtn').style.display='none';
   showTab('home');
@@ -455,27 +508,40 @@ function publicBoot(){
      </div>`).join('');
   loadClubName();
   loadNotices();
-  loadHome(); loadSchedules(); loadRanking(); loadMembersPicker(); loadNamePicker();
+  loadSchedules(); loadRanking(); loadMembersPicker(); loadNamePicker();
   document.getElementById('viewBtn-month').classList.add('view-active');
   if(me) revealMemberUI();
 }
 
-function revealMemberUI(){
-  document.getElementById('meBadge').style.display='inline-flex';
+function renderProfileBar(){
+  document.getElementById('profileBar').style.display='flex';
   document.getElementById('loginNavBtn').style.display='none';
-  document.getElementById('meBadge').innerHTML =
-    `<span class="tier-dot ${tierClass(me.tier)}"></span> ${me.name} · ${me.role==='master'?'마스터':me.role==='staff'?'운영진':'회원'} · ${tierLabel(me.tier)} <span style="opacity:.6;margin-left:6px;cursor:pointer;" onclick="logout()">로그아웃</span>`;
+  document.getElementById('pfName').textContent = `👤 ${me.name}`;
+  document.getElementById('pfTier').innerHTML = `<span class="tier-dot ${tierClass(me.tier)}"></span> ${tierLabel(me.tier)}`;
+  document.getElementById('pfRole').textContent = me.role==='master' ? '마스터' : me.role==='staff' ? '운영진' : '회원';
+  document.getElementById('pfGroup').textContent = me.group_type || '소속 미입력';
+}
+window.editProfile = async function(){
+  const g = prompt('소속을 입력하세요 (예: 고등/중등/대학/사회/친구)', me.group_type || '');
+  if(g===null) return;
+  await supabase.rpc('update_my_group', { p_member_id: me.id, p_group_type: g });
+  me.group_type = g;
+  sessionStorage.setItem('me', JSON.stringify(me));
+  renderProfileBar();
+};
+
+function revealMemberUI(){
+  renderProfileBar();
   if(me.role==='master' || me.role==='staff'){
     document.getElementById('adminTabBtn').style.display='flex';
     loadAdmin();
     loadNoticeAdminList();
   }
-  loadMy();
+  loadMembersPicker();
 }
 publicBoot();
 
 window.showTab = function(name){
-  if(name==='my' && !requireLogin()) return;
   if(name==='admin' && (!me || (me.role!=='master' && me.role!=='staff'))){ requireLogin(); return; }
   document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   document.querySelectorAll('main section').forEach(s=>s.classList.toggle('active', s.id==='tab-'+name));
@@ -493,18 +559,7 @@ async function loadNotices(){
   }
 }
 
-// ---------- 홈 ----------
-async function loadHome(){
-  const today = new Date();
-  const in7 = new Date(); in7.setDate(today.getDate()+7);
-  const { data } = await supabase.from('schedules').select('*')
-    .gte('date', today.toISOString().slice(0,10))
-    .lte('date', in7.toISOString().slice(0,10))
-    .order('date');
-  const el = document.getElementById('homeSchedule');
-  el.innerHTML = (data && data.length) ? data.map(scheduleCard).join('') : '<div class="empty">다가오는 일정이 없어요.</div>';
-}
-
+// ---------- 일정 카드 ----------
 function scheduleCard(s){
   return `<div class="card" style="margin-bottom:8px;">
     <div class="row">
@@ -530,7 +585,7 @@ function scheduleCard(s){
 window.setStatus = async function(scheduleId, status){
   if(!requireLogin()) return;
   await supabase.rpc('set_attendance', { p_schedule_id: scheduleId, p_member_id: me.id, p_status: status });
-  loadHome(); loadSchedules();
+  loadSchedules();
 };
 
 // ---------- 일정 ----------
@@ -548,17 +603,66 @@ window.addSchedule = async function(){
   };
   if(!payload.date){ alert('날짜를 입력하세요.'); return; }
   await supabase.from('schedules').insert(payload);
-  loadSchedules(); loadHome();
+  loadSchedules();
 };
 
 let scheduleViewMode = 'month';
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+let selectedDate = null;
+let allSchedulesCache = [];
+
 window.setScheduleView = function(mode){
   scheduleViewMode = mode;
   ['month','quarter','year'].forEach(m=>{
     document.getElementById('viewBtn-'+m).classList.toggle('view-active', m===mode);
   });
-  loadSchedules();
+  renderScheduleList();
 };
+
+window.calMonthShift = function(delta){
+  calMonth += delta;
+  if(calMonth < 0){ calMonth = 11; calYear--; }
+  if(calMonth > 11){ calMonth = 0; calYear++; }
+  renderCalendar();
+};
+window.calGoToday = function(){
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  selectedDate = null;
+  renderCalendar(); renderScheduleList();
+};
+window.selectCalDate = function(dateStr){
+  selectedDate = (selectedDate === dateStr) ? null : dateStr;
+  renderCalendar();
+  renderScheduleList();
+};
+
+function renderCalendar(){
+  const title = document.getElementById('calTitle');
+  if(title) title.textContent = `${calYear}년 ${calMonth+1}월`;
+  const firstDow = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const scheduleDates = new Set(
+    allSchedulesCache
+      .filter(s=>{ const [y,m] = s.date.split('-').map(Number); return y===calYear && m===calMonth+1; })
+      .map(s=>s.date)
+  );
+  const todayStr = new Date().toISOString().slice(0,10);
+  let html = ['일','월','화','수','목','금','토'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<firstDow;i++) html += `<div class="cal-day blank"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cls = ['cal-day'];
+    if(dateStr===todayStr) cls.push('today');
+    if(dateStr===selectedDate) cls.push('selected');
+    html += `<div class="${cls.join(' ')}" onclick="selectCalDate('${dateStr}')">
+      <span>${d}</span>${scheduleDates.has(dateStr) ? '<span class="dot"></span>' : ''}
+    </div>`;
+  }
+  const grid = document.getElementById('calGrid');
+  if(grid) grid.innerHTML = html;
+}
 
 function groupKey(dateStr, mode){
   const [y,m] = dateStr.split('-').map(Number);
@@ -570,18 +674,32 @@ function groupKey(dateStr, mode){
   return `${y}년 ${m}월`;
 }
 
-async function loadSchedules(){
-  const { data } = await supabase.from('schedules').select('*').order('date', { ascending:true });
+function renderScheduleList(){
   const el = document.getElementById('scheduleList');
-  if(!data || data.length===0){ el.innerHTML = '<div class="empty">등록된 일정이 없어요.</div>'; return; }
+  if(!el) return;
+  if(!allSchedulesCache.length){ el.innerHTML = '<div class="empty">등록된 일정이 없어요.</div>'; return; }
+  if(selectedDate){
+    const items = allSchedulesCache.filter(s=>s.date===selectedDate);
+    el.innerHTML =
+      `<div class="group-header">${selectedDate} <span style="cursor:pointer;color:var(--gold);font-weight:400;text-transform:none;" onclick="selectCalDate('${selectedDate}')">· 전체보기</span></div>` +
+      (items.length ? items.map(scheduleCard).join('') : '<div class="empty">이 날짜엔 일정이 없어요.</div>');
+    return;
+  }
   const groups = {};
-  data.forEach(s=>{
+  allSchedulesCache.forEach(s=>{
     const k = groupKey(s.date, scheduleViewMode);
     (groups[k] = groups[k] || []).push(s);
   });
   el.innerHTML = Object.entries(groups).map(([k, items])=>
     `<div class="group-header">${k}</div>${items.map(scheduleCard).join('')}`
   ).join('');
+}
+
+async function loadSchedules(){
+  const { data } = await supabase.from('schedules').select('*').order('date', { ascending:true });
+  allSchedulesCache = data || [];
+  renderCalendar();
+  renderScheduleList();
 }
 
 // ---------- 랭킹 ----------
@@ -632,8 +750,7 @@ window.submitRound = async function(){
   if(updated){
     me = { ...me, tier: updated.tier };
     sessionStorage.setItem('me', JSON.stringify(me));
-    document.getElementById('meBadge').innerHTML =
-      `<span class="tier-dot ${tierClass(me.tier)}"></span> ${me.name} · ${me.role==='master'?'마스터':me.role==='staff'?'운영진':'회원'} · ${tierLabel(me.tier)}`;
+    renderProfileBar();
   }
   document.getElementById('rScore').value=''; document.getElementById('rCourse').value='';
   loadMy(); loadRanking();
@@ -646,22 +763,34 @@ window.changePw = async function(){
   document.getElementById('newPw').value='';
 };
 
-// ---------- 회원별 보기 ----------
+// ---------- 마이/회원 ----------
 async function loadMembersPicker(){
   const { data } = await supabase.from('members_public').select('id,name').order('name');
-  document.getElementById('memberPicker').innerHTML =
-    (data||[]).map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  const el = document.getElementById('memberPicker');
+  el.innerHTML = (data||[]).map(m=>`<option value="${m.id}">${m.name}${me && m.id===me.id ? ' (나)' : ''}</option>`).join('');
+  if(me) el.value = me.id;
   if(data && data.length) loadMemberView();
 }
 window.loadMemberView = async function(){
   const id = document.getElementById('memberPicker').value;
+  if(!id) return;
+  if(me && id === me.id){
+    document.getElementById('selfPanel').style.display = 'block';
+    document.getElementById('otherPanel').style.display = 'none';
+    loadMy();
+    return;
+  }
+  document.getElementById('selfPanel').style.display = 'none';
+  document.getElementById('otherPanel').style.display = 'block';
   const { data: m } = await supabase.from('members_public').select('*').eq('id', id).single();
   const { data: rounds } = await supabase.from('rounds').select('*').eq('member_id', id).order('date',{ascending:false}).limit(10);
-  document.getElementById('memberView').innerHTML = `
-    <div class="row"><h3 style="margin:0">${m.name}</h3><span class="tier-badge ${tierClass(m.tier)}">${tierLabel(m.tier)}</span></div>
-    <div class="scorecard" style="margin-top:8px;">
-      ${(rounds||[]).slice(0,5).map(r=>`<div class="cell"><div class="d">${r.date.slice(5)}</div><div class="s num">${r.score}</div></div>`).join('') || '<div class="empty">기록 없음</div>'}
-    </div>`;
+  document.getElementById('otherName').textContent = m.name;
+  const badge = document.getElementById('otherTierBadge');
+  badge.className = `tier-badge ${tierClass(m.tier)}`;
+  badge.textContent = tierLabel(m.tier);
+  document.getElementById('otherScorecard').innerHTML =
+    (rounds||[]).slice(0,5).map(r=>`<div class="cell"><div class="d">${r.date.slice(5)}</div><div class="s num">${r.score}</div></div>`).join('')
+    || '<div class="empty">기록 없음</div>';
 };
 
 // ---------- 관리자 ----------
