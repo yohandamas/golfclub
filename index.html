@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>송연태 골프클럽(짝대기방)</title>
+<title>의리 골프클럽 (가제)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
@@ -187,7 +187,7 @@
   }
   .attend-team + .attend-team{ margin-top:8px; padding-top:8px; border-top:1px dashed #d5ded6; }
   .attend-team-label{ font-size:11px; color:var(--moss); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
-  .attend-team-names{ font-size:16px; font-weight:700; color:var(--ink); margin-top:3px; line-height:1.4; }
+  .attend-team-names{ font-size:19px; font-weight:700; color:var(--ink); margin-top:3px; line-height:1.4; }
   body.dark .attend-box{ background:#16201a; border-color:var(--moss); }
   body.dark .attend-team-names{ color:#EDEDE5; }
   body.dark .attend-team + .attend-team{ border-top-color:#33403a; }
@@ -437,8 +437,10 @@ const SUPABASE_ANON_KEY = 'sb_publishable_Ge73xpuuqWqblTW82xwyCg_G3E2z4Kh';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabase = supabase;
 
-const SITE_VERSION = 'v2.4';
+const SITE_VERSION = 'v2.6';
 const SITE_LOG = [
+  { v:'v2.6', note:'일정 카드의 날짜와 참석자 이름 글씨 크기 확대(19px)로 더 잘 보이게 조정' },
+  { v:'v2.5', note:'일정 등록시 입력한 구성원(메모) 텍스트도 참석 확정자와 동일한 박스형 디자인으로 통일' },
   { v:'v2.4', note:'프로필 바 소속 pill 삭제 후 비번변경 버튼으로 교체, 홈에 이용안내/등급설명 접이식 패널 추가, 일정 추가 폼 기본 접힘(버튼으로 펼침), CC 확정 추가 버튼을 금색 강조 버튼으로 분리' },
   { v:'v2.3', note:'운영진/마스터가 참석 리스트에서 다른 회원의 참석상태를 직접 추가·수정 가능, 참석 확정자 표시를 박스형 큰 글씨 디자인으로 변경, 일정 리스트 우측 상단에 관리자모드 바로가기 버튼 추가' },
   { v:'v2.2', note:'이번주 일정은 금색 테두리로 강조, 지난 일정은 회색 점선 처리 후 "지난 일정" 패널로 접어서 숨김' },
@@ -630,11 +632,11 @@ function scheduleCard(s){
       </div>
       <span class="pill ${s.reservation_status}">${s.reservation_status}</span>
     </div>
-    <div style="margin-top:6px;font-weight:700;">${s.date}${s.course_name?' · '+s.course_name:''}</div>
+    <div style="margin-top:6px;font-weight:700;font-size:19px;">${s.date}${s.course_name?' · '+s.course_name:''}</div>
     <div class="muted" style="margin-top:2px;">
       ${s.region?`📍 ${s.region}`:''} ${s.tee_time?`· ⏱ ${s.tee_time}`:''}
     </div>
-    ${s.note?`<div class="muted" style="margin-top:4px;">👥 ${s.note}</div>`:''}
+    ${s.note?`<div class="attend-box"><div class="attend-team"><div class="attend-team-label">구성원(예정)</div><div class="attend-team-names">${s.note}</div></div></div>`:''}
     ${teamSplitHtml(s.id)}
     <button class="cc-add-btn" onclick="addCC('${s.id}')">📍 CC 확정 추가</button>
     <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
