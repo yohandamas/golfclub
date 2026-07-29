@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>의리 골프클럽 (가제)</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#16332A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="의리골프">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
@@ -437,8 +445,9 @@ const SUPABASE_ANON_KEY = 'sb_publishable_Ge73xpuuqWqblTW82xwyCg_G3E2z4Kh';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabase = supabase;
 
-const SITE_VERSION = 'v2.6';
+const SITE_VERSION = 'v2.7';
 const SITE_LOG = [
+  { v:'v2.7', note:'갤럭시·아이폰 홈 화면에 앱 아이콘으로 추가할 수 있도록 manifest.json·아이콘·PWA 메타태그 추가' },
   { v:'v2.6', note:'일정 카드의 날짜와 참석자 이름 글씨 크기 확대(19px)로 더 잘 보이게 조정' },
   { v:'v2.5', note:'일정 등록시 입력한 구성원(메모) 텍스트도 참석 확정자와 동일한 박스형 디자인으로 통일' },
   { v:'v2.4', note:'프로필 바 소속 pill 삭제 후 비번변경 버튼으로 교체, 홈에 이용안내/등급설명 접이식 패널 추가, 일정 추가 폼 기본 접힘(버튼으로 펼침), CC 확정 추가 버튼을 금색 강조 버튼으로 분리' },
