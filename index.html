@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>의리 골프클럽 (가제)</title>
+<title>송연태골프클럽 (짝대기방)</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -43,14 +43,15 @@
 
   /* ---- Header ---- */
   header.top{
-    background:var(--fairway); color:#fff; padding:18px 20px 22px;
+    background:var(--fairway); color:#fff; padding:16px 20px 20px;
     border-radius:0 0 22px 22px; text-align:center; position:relative;
   }
-  header.top .row{ justify-content:center; }
+  header.top .row{ justify-content:center; align-items:center; }
   header.top .eyebrow{ font-size:12px; letter-spacing:.18em; color:var(--gold); text-transform:uppercase; }
   header.top h1{ margin:4px 0 0; font-size:28px; }
-  header.top .club-title{ font-size:32px; color:#fff; }
-  header.top .sub{ font-size:13px; opacity:.75; margin-top:2px; }
+  header.top .club-title{ font-size:22px; color:#fff; }
+  header.top .sub{ font-size:12.5px; opacity:.75; margin-top:2px; }
+  header.top .row button.btn.small{ font-size:11.5px; padding:7px 11px; }
   .ver-corner{
     position:absolute; top:10px; left:14px; font-size:11px; opacity:.6;
     font-family:'Space Mono', monospace;
@@ -195,9 +196,13 @@
   }
   .attend-team + .attend-team{ margin-top:8px; padding-top:8px; border-top:1px dashed #d5ded6; }
   .attend-team-label{ font-size:11px; color:var(--moss); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
-  .attend-team-names{ font-size:19px; font-weight:700; color:var(--ink); margin-top:3px; line-height:1.4; }
+  .attend-team-names{ display:flex; flex-wrap:wrap; gap:6px; margin-top:5px; }
+  .name-chip{
+    font-size:14.5px; font-weight:700; color:var(--ink); background:#fff;
+    border:1.5px solid var(--fairway); border-radius:999px; padding:4px 12px;
+  }
+  body.dark .name-chip{ color:#EDEDE5; background:#20291f; border-color:var(--moss); }
   body.dark .attend-box{ background:#16201a; border-color:var(--moss); }
-  body.dark .attend-team-names{ color:#EDEDE5; }
   body.dark .attend-team + .attend-team{ border-top-color:#33403a; }
   .admin-inline{ background:#f7f5ec; }
   body.dark .admin-inline{ background:#1f271f; }
@@ -260,7 +265,6 @@
   <header class="top">
     <div class="ver-corner" id="versionTag"></div>
     <div class="row" style="gap:6px;flex-wrap:wrap;">
-      <button class="btn small ghost" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.3);" onclick="quickChangePw()">🔑 비번변경</button>
       <button class="btn small ghost" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.3);" onclick="toggleFontSize()">🔤 글자크기</button>
       <button class="btn small ghost" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.3);" onclick="setTheme('light')">☀️ 라이트</button>
       <button class="btn small ghost" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.3);" onclick="setTheme('dark')">🌙 다크</button>
@@ -445,8 +449,9 @@ const SUPABASE_ANON_KEY = 'sb_publishable_Ge73xpuuqWqblTW82xwyCg_G3E2z4Kh';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabase = supabase;
 
-const SITE_VERSION = 'v2.7';
+const SITE_VERSION = 'v2.8';
 const SITE_LOG = [
+  { v:'v2.8', note:'상단 중복 비번변경 버튼 삭제, 클럽명·헤더 글자크기 축소 및 정렬 정돈, 참석자/구성원 이름을 개별 박스(칩)로 분할 표시' },
   { v:'v2.7', note:'갤럭시·아이폰 홈 화면에 앱 아이콘으로 추가할 수 있도록 manifest.json·아이콘·PWA 메타태그 추가' },
   { v:'v2.6', note:'일정 카드의 날짜와 참석자 이름 글씨 크기 확대(19px)로 더 잘 보이게 조정' },
   { v:'v2.5', note:'일정 등록시 입력한 구성원(메모) 텍스트도 참석 확정자와 동일한 박스형 디자인으로 통일' },
@@ -645,7 +650,7 @@ function scheduleCard(s){
     <div class="muted" style="margin-top:2px;">
       ${s.region?`📍 ${s.region}`:''} ${s.tee_time?`· ⏱ ${s.tee_time}`:''}
     </div>
-    ${s.note?`<div class="attend-box"><div class="attend-team"><div class="attend-team-label">구성원(예정)</div><div class="attend-team-names">${s.note}</div></div></div>`:''}
+    ${s.note?`<div class="attend-box"><div class="attend-team"><div class="attend-team-label">구성원(예정)</div><div class="attend-team-names">${s.note.split(',').map(n=>`<span class="name-chip">${n.trim()}</span>`).join('')}</div></div></div>`:''}
     ${teamSplitHtml(s.id)}
     <button class="cc-add-btn" onclick="addCC('${s.id}')">📍 CC 확정 추가</button>
     <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
@@ -874,7 +879,7 @@ function teamSplitHtml(scheduleId){
     ${teams.map((t,i)=>`
       <div class="attend-team">
         <div class="attend-team-label">${teams.length>1 ? (i+1)+'팀' : '참석 확정'} · ${t.length}명</div>
-        <div class="attend-team-names">${t.join(' · ')}</div>
+        <div class="attend-team-names">${t.map(n=>`<span class="name-chip">${n}</span>`).join('')}</div>
       </div>`).join('')}
   </div>`;
 }
