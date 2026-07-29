@@ -60,10 +60,11 @@
     display:inline-flex; align-items:center; gap:6px; margin-top:12px;
     background:rgba(255,255,255,.1); padding:6px 12px; border-radius:999px; font-size:13px;
   }
-  .profile-bar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .profile-bar{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; justify-content:center; }
   .pf-pill{
-    background:rgba(255,255,255,.1); color:#fff; padding:6px 14px; border-radius:999px;
-    font-size:12.5px; border:none; display:inline-flex; align-items:center; gap:5px;
+    background:rgba(255,255,255,.1); color:#fff; padding:5px 11px; border-radius:999px;
+    font-size:11px; font-family:inherit; border:none; box-sizing:border-box;
+    display:inline-flex; align-items:center; gap:4px; line-height:1.4; margin:0; height:26px;
   }
   .pf-pill.pf-edit{ background:var(--moss); font-weight:700; cursor:pointer; }
   .pf-pill.pf-logout{ background:rgba(255,255,255,.06); opacity:.7; cursor:pointer; }
@@ -177,9 +178,22 @@
   body.dark input, body.dark select, body.dark textarea{ background:#1A211C; color:#EDEDE5; border-color:#3a4038; }
   body.dark nav.tabs{ background:#1A211C; border-color:#2b332c; }
   body.dark .scorecard .cell{ background:#242b23; border-color:#3a4038; color:#EDEDE5; }
+  .sched-date{ font-size:19px; }
   body.text-lg{ font-size:17px; }
   body.text-lg header.top h1{ font-size:32px; }
   body.text-lg .card h3{ font-size:20px; }
+  body.text-lg .sched-date{ font-size:23px; }
+  body.text-lg .muted{ font-size:14.5px; }
+  body.text-lg .pill{ font-size:13px; }
+  body.text-lg .name-chip{ font-size:17px; }
+  body.text-lg .attend-team-label{ font-size:12.5px; }
+  body.text-lg .status-btn{ font-size:14px; padding:7px 12px; }
+  body.text-lg .btn.small{ font-size:14px; }
+  body.text-lg input, body.text-lg select{ font-size:16px; }
+  body.text-lg nav.tabs button{ font-size:12.5px; }
+  body.text-lg .rank-row{ font-size:15px; }
+  body.text-lg .tier-badge{ font-size:13px; }
+  body.text-lg .group-header{ font-size:17px; }
   .empty{ text-align:center; padding:30px 10px; color:#9a9a90; font-size:13.5px; }
   .card.this-week-card{ border:2px solid var(--gold); }
   .card.past-card{ border:1px dashed #bbb; opacity:.55; }
@@ -210,6 +224,12 @@
     display:block; width:100%; margin-top:10px; padding:10px; border:none; border-radius:10px;
     background:var(--gold); color:#3a2f10; font-weight:700; font-size:13.5px; cursor:pointer;
   }
+  .heading-text{ color:var(--fairway); }
+  body.dark .heading-text,
+  body.dark .card h3,
+  body.dark .group-header,
+  body.dark .rank-row .n,
+  body.dark nav.tabs button.active{ color:#8FD9B0; }
   .rank-row{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #f0ede2; }
   .rank-row .n{ width:22px; text-align:center; font-weight:700; color:var(--fairway); }
 
@@ -311,6 +331,12 @@
           <button class="btn small" id="adminModeBtn" style="display:none;background:var(--fairway);color:#fff;" onclick="showTab('admin')">🔒 관리자모드</button>
         </div>
       </div>
+
+      <details class="card" open>
+        <summary class="heading-text" style="cursor:pointer;font-weight:700;">📋 전체 일정 요약</summary>
+        <div id="scheduleSummary" style="margin-top:8px;"></div>
+      </details>
+
       <div id="scheduleList"></div>
 
       <div class="card" id="scheduleAddCard">
@@ -330,7 +356,7 @@
       </div>
 
       <details class="card" style="padding:0;">
-        <summary style="padding:14px 16px;cursor:pointer;font-weight:700;color:var(--fairway);">📖 이용 안내 / 등급 설명</summary>
+        <summary class="heading-text" style="padding:14px 16px;cursor:pointer;font-weight:700;">📖 이용 안내 / 등급 설명</summary>
         <div style="padding:0 16px 16px;">
           <p style="font-weight:700;margin:10px 0 4px;">참석 방법</p>
           <p class="muted" style="margin:0;">각 일정 카드의 참석 / 대기(미정) / 불참 버튼을 눌러 표시하세요. 4명이 모이면 1팀, 4명을 넘으면 자동으로 1팀·2팀으로 나눠서 보여줘요.</p>
@@ -449,8 +475,9 @@ const SUPABASE_ANON_KEY = 'sb_publishable_Ge73xpuuqWqblTW82xwyCg_G3E2z4Kh';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabase = supabase;
 
-const SITE_VERSION = 'v2.8';
+const SITE_VERSION = 'v2.9';
 const SITE_LOG = [
+  { v:'v2.9', note:'회원목록 가나다순 정렬, 관리자 일정 수정/삭제 기능 추가, 참석 확정자와 구성원 메모를 하나의 박스로 통합, 프로필바 정렬/사이즈 축소, 글자크기 버튼 실제 적용 버그 수정, 다크모드 텍스트 대비 개선, 전체 일정 텍스트 요약 패널 추가' },
   { v:'v2.8', note:'상단 중복 비번변경 버튼 삭제, 클럽명·헤더 글자크기 축소 및 정렬 정돈, 참석자/구성원 이름을 개별 박스(칩)로 분할 표시' },
   { v:'v2.7', note:'갤럭시·아이폰 홈 화면에 앱 아이콘으로 추가할 수 있도록 manifest.json·아이콘·PWA 메타태그 추가' },
   { v:'v2.6', note:'일정 카드의 날짜와 참석자 이름 글씨 크기 확대(19px)로 더 잘 보이게 조정' },
@@ -573,7 +600,7 @@ function publicBoot(){
   document.getElementById('versionTag').textContent = SITE_VERSION;
   document.getElementById('updateLog').innerHTML = SITE_LOG.map(l=>
     `<div class="row" style="padding:5px 0;border-bottom:1px solid #f2f0e6;">
-       <span class="num" style="font-weight:700;color:var(--fairway)">${l.v}</span>
+       <span class="num heading-text" style="font-weight:700;">${l.v}</span>
        <span class="muted" style="flex:1;margin-left:10px;">${l.note}</span>
      </div>`).join('');
   loadClubName();
@@ -646,12 +673,11 @@ function scheduleCard(s){
       </div>
       <span class="pill ${s.reservation_status}">${s.reservation_status}</span>
     </div>
-    <div style="margin-top:6px;font-weight:700;font-size:19px;">${s.date}${s.course_name?' · '+s.course_name:''}</div>
+    <div class="sched-date" style="margin-top:6px;font-weight:700;">${s.date}${s.course_name?' · '+s.course_name:''}</div>
     <div class="muted" style="margin-top:2px;">
       ${s.region?`📍 ${s.region}`:''} ${s.tee_time?`· ⏱ ${s.tee_time}`:''}
     </div>
-    ${s.note?`<div class="attend-box"><div class="attend-team"><div class="attend-team-label">구성원(예정)</div><div class="attend-team-names">${s.note.split(',').map(n=>`<span class="name-chip">${n.trim()}</span>`).join('')}</div></div></div>`:''}
-    ${teamSplitHtml(s.id)}
+    ${attendeeChipsHtml(s)}
     <button class="cc-add-btn" onclick="addCC('${s.id}')">📍 CC 확정 추가</button>
     <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
       <button class="status-btn" onclick="setStatus('${s.id}','참석')">참석</button>
@@ -666,6 +692,10 @@ function scheduleCard(s){
       <button class="btn small ghost" onclick="adminSetStatus('${s.id}','참석')">참석</button>
       <button class="btn small ghost" onclick="adminSetStatus('${s.id}','대기')">대기</button>
       <button class="btn small ghost" onclick="adminSetStatus('${s.id}','불참')">불참</button>
+    </div>
+    <div class="row admin-inline" style="margin-top:6px;gap:6px;border-radius:9px;padding:8px;">
+      <button class="btn small ghost" onclick="editSchedule('${s.id}')">✏️ 일정 수정</button>
+      <button class="btn small ghost" onclick="deleteSchedule('${s.id}')">🗑 삭제</button>
     </div>` : ''}
     <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:4px;flex-wrap:wrap;">
       <input type="number" id="gf-${s.id}" placeholder="그린피" value="${s.green_fee ?? ''}" style="width:76px;margin:0;padding:5px 6px;font-size:11px;">
@@ -714,6 +744,38 @@ window.adminSetStatus = async function(scheduleId, status){
   const sel = document.getElementById('adm-mem-'+scheduleId);
   if(!sel || !sel.value) return;
   await supabase.rpc('set_attendance', { p_schedule_id: scheduleId, p_member_id: sel.value, p_status: status });
+  loadSchedules();
+};
+
+window.editSchedule = async function(scheduleId){
+  if(!me || (me.role!=='master' && me.role!=='staff')) return;
+  const s = allSchedulesCache.find(x=>x.id===scheduleId);
+  if(!s) return;
+  const date = prompt('날짜 (YYYY-MM-DD)', s.date);
+  if(date===null) return;
+  const eventType = prompt('이벤트 타입 (정기/백세클럽/100세클럽/제외)', s.event_type);
+  if(eventType===null) return;
+  const timeSlot = prompt('시간대 (야간/주간/빈칸)', s.time_slot || '');
+  if(timeSlot===null) return;
+  const course = prompt('Cc (골프장/코스명)', s.course_name || '');
+  if(course===null) return;
+  const region = prompt('행정구역', s.region || '');
+  if(region===null) return;
+  const tee = prompt('티업 시간', s.tee_time || '');
+  if(tee===null) return;
+  const note = prompt('구성원 / 메모', s.note || '');
+  if(note===null) return;
+  await supabase.from('schedules').update({
+    date, event_type: eventType, time_slot: timeSlot || null,
+    course_name: course || null, region: region || null, tee_time: tee || null, note: note || null,
+  }).eq('id', scheduleId);
+  loadSchedules();
+};
+
+window.deleteSchedule = async function(scheduleId){
+  if(!me || (me.role!=='master' && me.role!=='staff')) return;
+  if(!confirm('이 일정을 삭제할까요? 되돌릴 수 없습니다.')) return;
+  await supabase.from('schedules').delete().eq('id', scheduleId);
   loadSchedules();
 };
 
@@ -856,7 +918,7 @@ async function loadSchedules(){
   const { data } = await supabase.from('schedules').select('*').order('date', { ascending:true });
   allSchedulesCache = data || [];
 
-  const { data: mems } = await supabase.from('members_public').select('id,name');
+  const { data: mems } = await supabase.from('members_public').select('id,name').order('name');
   memberNameMap = {};
   (mems||[]).forEach(m=>{ memberNameMap[m.id] = m.name; });
 
@@ -868,20 +930,42 @@ async function loadSchedules(){
 
   renderCalendar();
   renderScheduleList();
+  renderScheduleSummary();
 }
 
-function teamSplitHtml(scheduleId){
-  const ids = attendanceBySchedule[scheduleId] || [];
-  if(!ids.length) return '';
-  const names = ids.map(id => memberNameMap[id] || '?');
-  const teams = names.length <= 4 ? [names] : [names.slice(0,4), names.slice(4)];
+function mergedAttendeeNames(s){
+  const noteNames = s.note ? s.note.split(',').map(x=>x.trim()).filter(Boolean) : [];
+  const attendIds = attendanceBySchedule[s.id] || [];
+  const attendNames = attendIds.map(id => memberNameMap[id] || '?');
+  const merged = [...noteNames];
+  attendNames.forEach(n=>{ if(!merged.includes(n)) merged.push(n); });
+  return merged;
+}
+
+function attendeeChipsHtml(s){
+  const merged = mergedAttendeeNames(s);
+  if(!merged.length) return '';
+  const teams = merged.length <= 4 ? [merged] : [merged.slice(0,4), merged.slice(4)];
   return `<div class="attend-box">
     ${teams.map((t,i)=>`
       <div class="attend-team">
-        <div class="attend-team-label">${teams.length>1 ? (i+1)+'팀' : '참석 확정'} · ${t.length}명</div>
+        <div class="attend-team-label">${teams.length>1 ? (i+1)+'팀' : '구성원'} · ${t.length}명</div>
         <div class="attend-team-names">${t.map(n=>`<span class="name-chip">${n}</span>`).join('')}</div>
       </div>`).join('')}
   </div>`;
+}
+
+function renderScheduleSummary(){
+  const el = document.getElementById('scheduleSummary');
+  if(!el) return;
+  const todayStr = new Date().toISOString().slice(0,10);
+  const upcoming = allSchedulesCache.filter(s=>s.date >= todayStr);
+  if(!upcoming.length){ el.innerHTML = '<div class="empty">다가오는 일정이 없어요.</div>'; return; }
+  el.innerHTML = upcoming.map(s=>{
+    const md = s.date.slice(5).replace('-','/');
+    const names = mergedAttendeeNames(s);
+    return `<div class="muted" style="padding:3px 0;">${md} ${names.join(' ')}</div>`;
+  }).join('');
 }
 
 // ---------- 랭킹 ----------
